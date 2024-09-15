@@ -9,7 +9,7 @@ all_urls = []
 def url_is_article(url, current_year='2024'):
     global all_urls
     if url:
-        if 'edition.cnn.com/{}/'.format(current_year) in url and '/gallery/' not in url:
+        if 'edition.cnn.com/{}/'.format(current_year) in url and '/gallery/' not in url and '/video/' not in url:
             return True
     return False
 
@@ -37,7 +37,7 @@ def get_body(html):
     summary = generate_summary(combined_text)
     return summary
 
-def scrape():
+def scrape(maxArticles):
     global all_urls
     url = 'https://edition.cnn.com'
     response = requests.get(url)
@@ -49,7 +49,7 @@ def scrape():
         if a['href'] not in seen_urls:
             seen_urls.add(a['href'])
             all_urls.append(a['href'])
-    article_urls = [url for url in all_urls if url_is_article(url)]
+    article_urls = [url for url in all_urls if url_is_article(url)][:int(maxArticles)]
     articles = []
     for url in article_urls:
         d = {}
@@ -60,8 +60,5 @@ def scrape():
         d["summary"] = body
         d["url"] = url
         articles.append(d)
-    print(articles)
-
-if __name__ == '__main__':
-    scrape()
+    return articles
     

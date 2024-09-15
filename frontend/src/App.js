@@ -1,19 +1,50 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import Table from "./Table.js";
 
 function App() {
   const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [maxArticles, setMaxArticles] = useState('');
 
-  useEffect(() => {
-    // Fetch data from Django backend
-    fetch('http://127.0.0.1:8000/api/data/')
-      .then(response => response.json())
-      .then(data => setData(data));
-  }, []);
+  const handleInput = (e) => {
+    setMaxArticles(e.target.value);
+  };
+
+  const handleScrape = async () => {
+    setLoading(true);
+    setData(null);
+    const response = await fetch('http://localhost:8000/api/scrape/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ maxArticles: maxArticles }),
+    });
+
+    const result = await response.json();
+    setLoading(false);
+    setData(result);
+  };
 
   return (
     <div className="App">
-      <h1>React to Django</h1>
-      {data ? <p>{data.message}</p> : <p>Loading...</p>}
+      <h1>Newsify</h1>
+      
+      <div> 
+      <input
+        type="number"
+        name="number"
+        value={maxArticles}
+        onChange={handleInput}
+        placeholder="Max number of articles to be displayed"
+      />
+      <button onClick={handleScrape} disabled={loading}>
+        {loading ? "Scraping..." : "Scrape Data"}
+      </button>
+      </div>
+
+      {/* Display the scraped data in a table */}
+      {data && <Table data={data} />}
     </div>
   );
 }
